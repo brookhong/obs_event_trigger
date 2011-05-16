@@ -1,0 +1,6 @@
+    This plugin is to poll OBS Event from a RabbitMQ Server and start a build if received event is matched with the specified event.
+
+    To use this trigger,
+
+    * An OBS instance must be configured with the notify_rabbitmq.pm plugin to send OBS events to RabbitMQ server.
+    * Notify_rabbitmq.pm depends on Net-RabbitMQ-0.2.0.

@@ -1,0 +1,6 @@
+<!--
+  This view is used to render the installed plugins page.
+-->
+<div>
+  This plugin is to poll OBS Event from a RabbitMQ Server and start a build if received event is matched with the specified event.
+</div>

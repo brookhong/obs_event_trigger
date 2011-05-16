@@ -1,0 +1,29 @@
+<div>
+    Enter an OBS Event to match here.<BR>
+    If a matched OBS Event was received, a build will be started. e.g:
+    <pre>
+        {
+          'eventtype' : 'OBS_REPO_PUBLISH_STATE',
+          'state' : 'published'
+          'repo' : 'openSUSE_11.2_standard',
+          'project' : 'devel',
+        };
+    </pre>
+    or
+    <pre>
+        {
+          'eventtype' : 'OBS_BUILD_SUCCESS',
+          'project' : 'devel',
+          'package' : 'libzip',
+          'repository' : 'openSUSE_11.2_standard',
+        };
+    </pre>
+    or
+    <pre>
+        {
+          'eventtype' : 'OBS_SRCSRV_COMMIT',
+          'project' : 'devel',
+          'package' : 'libzip',
+        };
+    </pre>
+</div>
