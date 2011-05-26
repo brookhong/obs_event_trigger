@@ -4,3 +4,8 @@
 
     * An OBS instance must be configured with the notify_rabbitmq.pm plugin to send OBS events to RabbitMQ server.
     * Notify_rabbitmq.pm depends on Net-RabbitMQ-0.2.0.
+    * The RabbitMQ settings must be modified with --
+        ** rabbitmqctl add_vhost mailer_vhost
+        ** rabbitmqctl add_user mailer mailerpwd
+        ** rabbitmqctl set_permissions -p mailer_vhost mailer '.*' '.*' '.*'
+
