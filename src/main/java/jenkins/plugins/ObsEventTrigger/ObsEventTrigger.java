@@ -35,6 +35,7 @@ public final class ObsEventTrigger extends Trigger<BuildableItem> {
     private final String obs_event;
     private final String amqp_server;
     private JSONObject obMatchEvent;
+    private JSONObject obGotEvent;
     private JSONArray sMatchNames;
     private Channel channel;
     private String obs_queue;
@@ -55,6 +56,9 @@ public final class ObsEventTrigger extends Trigger<BuildableItem> {
 
     public String getObs_event() {
         return obs_event;
+    }
+    public JSONObject getGotObsEvent() {
+        return obGotEvent;
     }
     public String getAmqp_server() {
         return amqp_server;
@@ -113,12 +117,12 @@ public final class ObsEventTrigger extends Trigger<BuildableItem> {
                     long deliveryTag = response.getEnvelope().getDeliveryTag();
                     channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
 
-                    JSONObject obGotEvent = (JSONObject) JSONSerializer.toJSON( gotEvent );
-                    gotEvent = obGotEvent.toString(4);
-                    System.out.println("OBS Event Trigger got an Event: \n"+gotEvent);
+                    obGotEvent = (JSONObject) JSONSerializer.toJSON( gotEvent );
+                    String causeString = obGotEvent.toString(4);
+
+                    System.out.println("OBS Event Trigger got an Event: \n"+causeString);
 
                     int i = 0, len = sMatchNames.size();
-                    String causeString = gotEvent;
                     for(i = 0; i < len; i++) {
                         String key = sMatchNames.optString(i);
                         if(!obGotEvent.has(key) || !obGotEvent.getString(key).equals(obMatchEvent.getString(key))) {

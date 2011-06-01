@@ -27,3 +27,27 @@
         };
     </pre>
 </div>
+<p>All Events list:
+<table border="1" width="100%"><tbody>
+        <tr><td>eventtype</td><td>available fields</td></tr>
+        <tr><td>OBS_REPO_PUBLISHED</td><td> { project =&gt; $projid , 'repo' =&gt; $repoid }</td></tr>
+        <tr><td>OBS_REPO_PUBLISH_STATE</td><td> { 'project' =&gt; $ev-&gt;{'project'}, 'repo' =&gt; $ev-&gt;{'repository'}, 'state' =&gt; 'publishing'}</td></tr>
+        <tr><td>OBS_REPO_PUBLISH_STATE</td><td> { 'project' =&gt; $ev-&gt;{'project'}, 'repo' =&gt; $ev-&gt;{'repository'}, 'state' =&gt; 'published'}</td></tr>
+        <tr><td>OBS_SRCSRV_UPLOAD</td><td> {project =&gt; $projid, package =&gt; $packid, filename =&gt; $filename, user =&gt; $user}</td></tr>
+        <tr><td>OBS_SRCSRV_UPDATE_PROJECT_CONFIG</td><td> { "project" =&gt; $projid, "sender" =&gt; $user }</td></tr>
+        <tr><td>OBS_SRCSRV_COMMIT</td><td> {project =&gt; $projid, package =&gt; $packid, files =&gt; $filestr, rev =&gt; $rev-&gt;{'rev'}, user =&gt; $user, comment =&gt; $comment}</td></tr>
+        <tr><td>OBS_SRCSRV_VERSION_CHANGE</td><td> {project =&gt; $projid, package =&gt; $packid, files =&gt; $filestr, rev =&gt; $rev-&gt;{'rev'},oldversion =&gt; $rev_old-&gt;{'version'}, newversion =&gt; $rev-&gt;{'version'}, user =&gt; $user, comment =&gt; $comment}</td></tr>
+        <tr><td>OBS_SRCSRV_UPDATE_PROJECT, SRCSRV_CREATE_PROJECT</td><td> { "project" =&gt; $projid, "sender" =&gt; ($cgi-&gt;{'user'} || "unknown") }</td></tr>
+        <tr><td>OBS_SRCSRV_DELETE_PROJECT</td><td> { "project" =&gt; $projid, "sender" =&gt; ($cgi-&gt;{'user'} || "unknown") }</td></tr>
+        <tr><td>OBS_SRCSRV_UPDATE_PACKAGE, SRCSRV_CREATE_PACKAGE</td><td> { "project" =&gt; $projid, "package" =&gt; $packid, "sender" =&gt; ($cgi-&gt;{'user'} || "unknown")}</td></tr>
+        <tr><td>OBS_SRCSRV_DELETE_PACKAGE</td><td> { "project" =&gt; $projid, "package" =&gt; $packid, "sender" =&gt; ($cgi-&gt;{'user'} || "unknown") }</td></tr>
+        <tr><td>OBS_SRCSRV_UPDATE_PROJECT_CONFIG</td><td> { "project" =&gt; $projid, "sender" =&gt; ($cgi-&gt;{'user'} || "unknown") }</td></tr>
+        <tr><td>OBS_SRCSRV_UPDATE_PROJECT_CONFIG</td><td> { "project" =&gt; $projid, "sender" =&gt; ($cgi-&gt;{'user'} || "unknown") }</td></tr>
+        <tr><td>OBS_SRCSRV_BRANCH_COMMAND</td><td> {project =&gt; $projid, package =&gt; $packid, targetproject =&gt; $oprojid, targetpackage =&gt; $opackid, user =&gt; $cgi-&gt;{'user'}}</td></tr>
+        <tr><td>OBS_SRCSRV_REQUEST_CHANGE</td><td> too much fields to list, please refer to BSNotify::requestParams in /usr/lib/obs/server/BSNotify.pm</td></tr>
+        <tr><td>OBS_SRCSRV_REQUEST_CREATE</td><td> too much fields to list, please refer to BSNotify::requestParams in /usr/lib/obs/server/BSNotify.pm</td></tr>
+        <tr><td>OBS_SRCSRV_REQUEST_STATECHANGE</td><td> too much fields to list, please refer to BSNotify::requestParams in /usr/lib/obs/server/BSNotify.pm</td></tr>
+        <tr><td>OBS_SRCSRV_REQUEST_DELETE</td><td> too much fields to list, please refer to BSNotify::requestParams in /usr/lib/obs/server/BSNotify.pm</td></tr>
+        <tr><td>OBS_SRCSRV_START</td><td> { 'port' =&gt; $port, 'dispatches' =&gt; $dispatches, 'setkeepalive' =&gt; 1, 'maxchild' =&gt; 20, }</td></tr>
+</tbody></table>
+
