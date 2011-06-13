@@ -1,4 +1,4 @@
-package jenkins.plugins.ObsEventTrigger;
+package jenkins.plugins;
 
 import java.io.*;
 import antlr.ANTLRException;
@@ -17,6 +17,7 @@ import hudson.util.RobustReflectionConverter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Hashtable;
 
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
@@ -33,7 +34,28 @@ import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.GetResponse;
 
 public final class ObsEventTrigger extends Trigger<SCMedItem> {
+    private static Hashtable metaData = new Hashtable();
+    public static void addMetaData(String key, Object value) {
+        metaData.put(key, value);
+    }
+    public static Object getMetaData(String key) {
+        return metaData.get(key);
+    }
+    public static void removeMetaData(String key) {
+        metaData.remove(key);
+    }
 
+    public class Cleaner extends Thread {
+        private ObsEventTrigger trigger;
+        public Cleaner(ObsEventTrigger ob) {
+            trigger = ob;
+        }
+        public void run() {
+            trigger._stop();
+        }
+    }
+    private transient Cleaner cleaner;
+    
     private final String obs_event;
     private final String amqp_server;
     private JSONObject obMatchEvent;
@@ -57,6 +79,13 @@ public final class ObsEventTrigger extends Trigger<SCMedItem> {
             obMatchEvent = (JSONObject) JSONSerializer.toJSON( obs_event );
             sMatchNames = obMatchEvent.names();
         }
+
+    protected void finalize() throws Throwable
+    {
+        super.finalize();
+        stop();
+    } 
+    
 
     public String getObs_event() {
         return obs_event;
@@ -91,24 +120,31 @@ public final class ObsEventTrigger extends Trigger<SCMedItem> {
 
                 System.out.println("OBS Event Trigger started("+channel+"+: "+project.getName()+";"+newInstance+"\n");
                 super.start(project,newInstance);
+
+                cleaner = new Cleaner(this);
+                Runtime.getRuntime().addShutdownHook(cleaner);
             }
             catch (Exception ex) {
                 System.err.println("ObsEventTrigger::start caught exception: " + ex);
                 ex.printStackTrace();
             }
         }
+    public void _stop() {
+        try {
+            channel.queueDelete(obs_queue);
+            System.out.println("OBS Event Trigger stoped("+channel+")\n");
+            channel.close();
+            super.stop();
+        }
+        catch (Exception ex) {
+            System.err.println("ObsEventTrigger::stop caught exception: " + ex);
+            ex.printStackTrace();
+        }
+    }
     @Override
         public void stop() {
-            try {
-                channel.queueDelete(obs_queue);
-                System.out.println("OBS Event Trigger stoped("+channel+")\n");
-                channel.close();
-                super.stop();
-            }
-            catch (Exception ex) {
-                System.err.println("ObsEventTrigger::stop caught exception: " + ex);
-                ex.printStackTrace();
-            }
+            Runtime.getRuntime().removeShutdownHook(cleaner);
+            _stop();
         }
 
     /**
