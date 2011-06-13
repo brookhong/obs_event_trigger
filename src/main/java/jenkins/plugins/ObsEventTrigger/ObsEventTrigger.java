@@ -1,13 +1,15 @@
 package jenkins.plugins.ObsEventTrigger;
 
+import java.io.*;
 import antlr.ANTLRException;
 import hudson.model.Cause;
 import net.sf.json.*;
+import hudson.util.ListBoxModel;
 import hudson.util.FormValidation;
 
 import static hudson.Util.fixNull;
 import hudson.Extension;
-import hudson.model.BuildableItem;
+import hudson.model.SCMedItem;
 import hudson.model.Item;
 import hudson.triggers.Trigger;
 import hudson.triggers.TriggerDescriptor;
@@ -30,7 +32,7 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.GetResponse;
 
-public final class ObsEventTrigger extends Trigger<BuildableItem> {
+public final class ObsEventTrigger extends Trigger<SCMedItem> {
 
     private final String obs_event;
     private final String amqp_server;
@@ -39,6 +41,7 @@ public final class ObsEventTrigger extends Trigger<BuildableItem> {
     private JSONArray sMatchNames;
     private Channel channel;
     private String obs_queue;
+    private String logging;
     /**
      * Create a new {@link ObsEventTrigger}.
      * 
@@ -46,16 +49,20 @@ public final class ObsEventTrigger extends Trigger<BuildableItem> {
      *          crontab specification that defines how often to poll
      */
     @DataBoundConstructor
-        public ObsEventTrigger(String spec, String obs_event, String amqp_server) throws ANTLRException {
+        public ObsEventTrigger(String spec, String obs_event, String amqp_server, String logging) throws ANTLRException {
             super(spec);
             this.obs_event = obs_event;
             this.amqp_server = amqp_server;
+            this.logging = logging;
             obMatchEvent = (JSONObject) JSONSerializer.toJSON( obs_event );
             sMatchNames = obMatchEvent.names();
         }
 
     public String getObs_event() {
         return obs_event;
+    }
+    public String getLogging() {
+        return logging;
     }
     public JSONObject getGotObsEvent() {
         return obGotEvent;
@@ -64,7 +71,7 @@ public final class ObsEventTrigger extends Trigger<BuildableItem> {
         return amqp_server;
     }
     @Override
-        public void start(BuildableItem project, boolean newInstance) {
+        public void start(SCMedItem project, boolean newInstance) {
             try {
                 ConnectionFactory connFactory = new ConnectionFactory();
 
@@ -111,6 +118,8 @@ public final class ObsEventTrigger extends Trigger<BuildableItem> {
         public void run() {
             try {
                 GetResponse response = channel.basicGet(obs_queue, false);
+                String logString = new String("");
+                int choice = Integer.parseInt(logging);
                 while(response != null) {
                     AMQP.BasicProperties props = response.getProps();
                     String gotEvent = new String(response.getBody());
@@ -121,6 +130,8 @@ public final class ObsEventTrigger extends Trigger<BuildableItem> {
                     String causeString = obGotEvent.toString(4);
 
                     System.out.println("OBS Event Trigger got an Event: \n"+causeString);
+                    if(choice == 2)
+                        logString += causeString+"\n";
 
                     int i = 0, len = sMatchNames.size();
                     for(i = 0; i < len; i++) {
@@ -130,13 +141,21 @@ public final class ObsEventTrigger extends Trigger<BuildableItem> {
                             break;
                         }
                     }
-                    if(causeString != "") {
+                    if(!causeString.equals("")) {
+                        if(choice == 1)
+                            logString = causeString;
                         String cause = String.format("Caused by OBS Event: \n%s\n", causeString);
                         job.scheduleBuild(0, new ObsEventCause(cause));
                         break;
                     }
-                    else
+                    else 
                         response = channel.basicGet(obs_queue, false);
+                }
+                if(!logString.equals("")) {
+                    FileWriter logFile = new FileWriter(job.getRootDir()+"/obsevent.txt", (choice==2));
+                    BufferedWriter logWriter = new BufferedWriter(logFile);
+                    logWriter.write(logString);
+                    logWriter.close();
                 }
             } catch (Exception ex) {
                 System.err.println("ObsEventTrigger::run caught exception: " + ex);
@@ -162,9 +181,17 @@ public final class ObsEventTrigger extends Trigger<BuildableItem> {
              */
             @Override
                 public boolean isApplicable(Item item) {
-                    return item instanceof BuildableItem;
+                    return item instanceof SCMedItem;
                 }
 
+            public ListBoxModel doFillLoggingItems() { 
+                ListBoxModel model = new ListBoxModel(); 
+                model.add("no logging","0");
+                model.add("logging the latest matched event","1");
+                model.add("logging all received event","2");
+                return model; 
+            }
+            
             /**
              * {@inheritDoc}
              */
